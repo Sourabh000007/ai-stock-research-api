@@ -67,3 +67,9 @@ def generate_report(req: StockRequest):
         media_type="application/pdf",
         filename=f"{req.company}_report.pdf"
     )
+
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
