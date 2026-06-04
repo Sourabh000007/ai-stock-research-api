@@ -3,4 +3,5 @@ __pycache__/
 .env
 generated_reports/
 reports/
+test_gemini.py
 *.pyc
