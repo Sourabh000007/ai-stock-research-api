@@ -27,10 +27,15 @@ os.makedirs(REPORT_FOLDER, exist_ok=True)
 
 # ---------------- PIPELINE FUNCTION ----------------
 def run_pipeline(symbol: str, company: str):
-    stock = get_stock_data(symbol)
-    news = get_news(company)
-    analysis = analyze_stock(stock, news)
-    return stock, news, analysis
+    try:
+        stock = get_stock_data(symbol)
+        news = get_news(company)
+        analysis = analyze_stock(stock, news)
+
+        return stock, news, analysis
+
+    except Exception as e:
+        raise Exception(f"Pipeline Error: {str(e)}")
 
 
 # ---------------- HEALTH ----------------
@@ -43,30 +48,55 @@ def health():
 @app.post("/analyze")
 def analyze(req: StockRequest):
 
-    stock, news, analysis = run_pipeline(req.symbol, req.company)
+    try:
+        stock, news, analysis = run_pipeline(
+            req.symbol,
+            req.company
+        )
 
-    return {
-        "stock": stock,
-        "news": news,
-        "analysis": analysis
-    }
+        return {
+            "stock": stock,
+            "news": news,
+            "analysis": analysis
+        }
+
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": str(e)
+        }
 
 
 # ---------------- REPORT (PDF DOWNLOAD) ----------------
 @app.post("/report")
 def generate_report(req: StockRequest):
 
-    stock, news, analysis = run_pipeline(req.symbol, req.company)
+    try:
+        stock, news, analysis = run_pipeline(
+            req.symbol,
+            req.company
+        )
 
-    file_path = f"{REPORT_FOLDER}/{req.company}_report.pdf"
+        file_path = f"{REPORT_FOLDER}/{req.company}_report.pdf"
 
-    create_pdf(stock, news, analysis, file_path)
+        create_pdf(
+            stock,
+            news,
+            analysis,
+            file_path
+        )
 
-    return FileResponse(
-        path=file_path,
-        media_type="application/pdf",
-        filename=f"{req.company}_report.pdf"
-    )
+        return FileResponse(
+            path=file_path,
+            media_type="application/pdf",
+            filename=f"{req.company}_report.pdf"
+        )
+
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": str(e)
+        }
 
 
 
