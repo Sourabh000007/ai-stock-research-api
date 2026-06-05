@@ -3,4 +3,5 @@ __pycache__/
 .env
 generated_reports/
 reports/
+*.pdf
 *.pyc
