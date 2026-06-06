@@ -15,6 +15,10 @@ company = st.text_input(
     placeholder="Example: TCS"
 )
 
+if not company:
+    st.warning("Please enter a company name")
+    st.stop()
+
 if st.button("Analyze"):
 
     API_URL = "https://stock-ai-api-d3va.onrender.com"
@@ -25,6 +29,11 @@ if st.button("Analyze"):
             "company": company
         }
     )
+
+    if response.status_code != 200:
+        st.error("Backend Error")
+        st.write(response.text)
+        st.stop()
 
     data = response.json()
 
