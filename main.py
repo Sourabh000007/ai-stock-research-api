@@ -23,6 +23,8 @@ app = FastAPI(
 class StockRequest(BaseModel):
     company: str
 
+class CompareRequest(BaseModel):
+    companies: list[str]
 
 # ---------------- FOLDERS ----------------
 REPORT_FOLDER = "reports"
@@ -126,6 +128,53 @@ def generate_report(req: StockRequest):
             "status": "error",
             "message": str(e)
         }
+
+
+@app.post("/compare")
+def compare_stocks(req: CompareRequest):
+
+    results = []
+
+    for company in req.companies:
+
+        stock, news, analysis, history, sentiment, recommendation = run_pipeline(
+            company
+        )
+
+        score = (
+            stock["1_month_return"]
+            + stock["3_month_return"]
+            + stock["6_month_return"]
+            + (sentiment["score"] * 10)
+        )
+
+        results.append({
+            "company": company,
+            "price": stock["price"],
+            "1_month_return": stock["1_month_return"],
+            "3_month_return": stock["3_month_return"],
+            "6_month_return": stock["6_month_return"],
+            "sentiment": sentiment["label"],
+            "sentiment_score": sentiment["score"],
+            "rating": recommendation["rating"],
+            "confidence": recommendation["confidence"],
+            "score": score
+        })
+
+    best_stock = max(
+        results,
+        key=lambda x: x["score"]
+    )
+
+    return {
+        "best_pick": best_stock["company"],
+        "best_pick_score": best_stock["score"],
+        "reason": (
+            f"{best_stock['company']} has the strongest "
+            "combination of returns and sentiment."
+        ),
+        "comparison": results
+    }
 
 
 

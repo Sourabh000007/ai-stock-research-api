@@ -179,27 +179,6 @@ def create_pdf(stock,news,analysis,history,sentiment,recommendation,filename):
 
     content.append(
         Paragraph(
-            "INVESTMENT RECOMMENDATION",
-            heading_style
-        )
-    )
-
-    content.append(
-        Paragraph(
-            f"<b>Rating:</b> {recommendation['rating']}",
-            body_style
-        )
-    )
-
-    content.append(
-        Paragraph(
-            f"<b>Confidence:</b> {recommendation['confidence']}%",
-            body_style
-        )
-    )
-
-    content.append(
-        Paragraph(
             f"<b>Reason:</b> {recommendation['reason']}",
             body_style
         )
