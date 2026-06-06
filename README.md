@@ -13,6 +13,60 @@ AI-powered stock research platform that combines:
 
 ## Features
 
+### News Sentiment Scoring
+
+Calculates market sentiment from recent news articles.
+
+Outputs:
+
+- POSITIVE
+- NEUTRAL
+- NEGATIVE
+
+Also generates a sentiment score used in stock ranking and investment recommendations.
+
+---
+
+### Investment Recommendation Engine
+
+Generates:
+
+- BUY
+- HOLD
+- SELL
+
+Along with a confidence score based on:
+
+- Historical returns
+- News sentiment
+- Overall stock momentum
+
+---
+
+### Historical Price Trend Visualization
+
+Generates a 6-month stock price chart and embeds it directly into the PDF report.
+
+---
+
+### Multi-Stock Comparison
+
+Compare multiple stocks simultaneously.
+
+Features:
+
+- Side-by-side stock comparison
+- Sentiment comparison
+- Recommendation comparison
+- Ranking engine
+- Best stock selection
+
+Returns:
+
+- Best Pick
+- Ranking Score
+- Selection Reason
+
 ### Stock Data Analysis
 Fetches:
 
@@ -61,8 +115,11 @@ Creates downloadable research reports in PDF format.
 Includes:
 
 - Stock Snapshot
+- Historical Price Chart
+- News Sentiment Score
+- Investment Recommendation
 - News Highlights
-- Investment Analysis
+- AI Investment Analysis
 - Risk Assessment
 - Outlook
 
@@ -95,8 +152,7 @@ Request:
 
 ```json
 {
-  "symbol": "INFY.NS",
-  "company": "Infosys"
+  "company": "INFY"
 }
 ```
 
@@ -106,6 +162,8 @@ Response:
 {
   "stock": {},
   "news": [],
+  "sentiment": {},
+  "recommendation": {},
   "analysis": ""
 }
 ```
@@ -120,8 +178,7 @@ Request:
 
 ```json
 {
-  "symbol": "INFY.NS",
-  "company": "Infosys"
+  "company": "INFY"
 }
 ```
 
@@ -131,6 +188,35 @@ Returns:
 
 ---
 
+### Compare Multiple Stocks
+
+```http
+POST /compare
+```
+
+Request:
+
+```json
+{
+  "companies": [
+    "TCS",
+    "INFY",
+    "WIPRO"
+  ]
+}
+```
+
+Response:
+
+```json
+{
+  "best_pick": "INFY",
+  "best_pick_score": -30.81,
+  "reason": "INFY has the strongest combination of returns and sentiment.",
+  "comparison": []
+}
+```
+
 ## Tech Stack
 
 - Python
@@ -139,6 +225,7 @@ Returns:
 - Google Gemini AI
 - Yahoo Finance (yfinance)
 - Feedparser
+- Matplotlib
 - ReportLab
 - Render Deployment
 
@@ -154,6 +241,9 @@ stock_ai_project/
 ├── news_fetcher.py
 ├── ai_analyzer.py
 ├── pdf_generator.py
+├── chart_generator.py
+├── sentiment_analyzer.py
+├── recommendation_engine.py
 ├── requirements.txt
 ├── .env
 ├── reports/
