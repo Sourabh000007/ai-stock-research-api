@@ -17,7 +17,7 @@ company = st.text_input(
 
 if st.button("Analyze"):
 
-    API_URL = "https://your-render-url.onrender.com"
+    API_URL = "https://stock-ai-api-d3va.onrender.com"
 
     response = requests.post(
         f"{API_URL}/analyze",
