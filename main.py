@@ -1,10 +1,15 @@
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
+
 from data_fetcher import get_stock_data
 from news_fetcher import get_news
 from ai_analyzer import analyze_stock
 from pdf_generator import create_pdf
+from symbol_mapper import get_symbol  
+from sentiment_analyzer import calculate_sentiment
+from recommendation_engine import generate_recommendation
+
 import os
 
 # ---------------- APP INIT ----------------
@@ -16,7 +21,6 @@ app = FastAPI(
 
 # ---------------- REQUEST MODEL ----------------
 class StockRequest(BaseModel):
-    symbol: str
     company: str
 
 
@@ -26,13 +30,33 @@ os.makedirs(REPORT_FOLDER, exist_ok=True)
 
 
 # ---------------- PIPELINE FUNCTION ----------------
-def run_pipeline(symbol: str, company: str):
+def run_pipeline(company: str):
     try:
-        stock = get_stock_data(symbol)
+
+        symbol = get_symbol(company)
+
+        if not symbol:
+            raise Exception(f"Unknown company: {company}")
+
+        stock, history = get_stock_data(symbol)
         news = get_news(company)
         analysis = analyze_stock(stock, news)
 
-        return stock, news, analysis
+        sentiment = calculate_sentiment(news)
+
+        recommendation = generate_recommendation(
+            stock,
+            sentiment
+        )
+
+        return (
+            stock,
+            news,
+            analysis,
+            history,
+            sentiment,
+            recommendation
+        )
 
     except Exception as e:
         raise Exception(f"Pipeline Error: {str(e)}")
@@ -49,14 +73,15 @@ def health():
 def analyze(req: StockRequest):
 
     try:
-        stock, news, analysis = run_pipeline(
-            req.symbol,
+        stock, news, analysis, history, sentiment, recommendation = run_pipeline(
             req.company
         )
 
         return {
             "stock": stock,
             "news": news,
+            "sentiment": sentiment,
+            "recommendation": recommendation,
             "analysis": analysis
         }
 
@@ -72,17 +97,21 @@ def analyze(req: StockRequest):
 def generate_report(req: StockRequest):
 
     try:
-        stock, news, analysis = run_pipeline(
-            req.symbol,
+        stock, news, analysis, history, sentiment, recommendation  = run_pipeline(
             req.company
         )
 
-        file_path = f"{REPORT_FOLDER}/{req.company}_report.pdf"
+        safe_name = req.company.replace(" ", "_").replace("/", "_")
+
+        file_path = f"{REPORT_FOLDER}/{safe_name}_report.pdf"
 
         create_pdf(
             stock,
             news,
             analysis,
+            history,
+            sentiment,
+            recommendation,
             file_path
         )
 

@@ -11,6 +11,14 @@ def get_stock_data(symbol):
 
     history = ticker.history(period="6mo")
 
+    historical_data = []
+
+    for date, row in history.iterrows():
+        historical_data.append({
+            "date": str(date.date()),
+            "close": round(row["Close"], 2)
+        })
+
     current_price = history["Close"].iloc[-1]
 
     one_month_price = history["Close"].iloc[-22]
@@ -36,7 +44,7 @@ def get_stock_data(symbol):
 
     info = ticker.info
 
-    return {
+    stock_data = {
     "name": info.get("longName"),
     "price": info.get("currentPrice"),
     "sector": info.get("sector"),
@@ -45,4 +53,6 @@ def get_stock_data(symbol):
     "1_month_return": float(round(one_month_return, 2)),
     "3_month_return": float(round(three_month_return, 2)),
     "6_month_return": float(round(six_month_return, 2))
-    }
+}
+
+    return stock_data, history
