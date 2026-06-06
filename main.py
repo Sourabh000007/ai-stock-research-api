@@ -9,6 +9,7 @@ from pdf_generator import create_pdf
 from symbol_mapper import get_symbol  
 from sentiment_analyzer import calculate_sentiment
 from recommendation_engine import generate_recommendation
+from comparison_pdf_generator import create_comparison_pdf
 
 import os
 
@@ -26,10 +27,15 @@ class StockRequest(BaseModel):
 class CompareRequest(BaseModel):
     companies: list[str]
 
+class CompareRequest(BaseModel):
+    companies: list[str]
+
 # ---------------- FOLDERS ----------------
 REPORT_FOLDER = "reports"
 os.makedirs(REPORT_FOLDER, exist_ok=True)
 
+COMPARE_REPORT_FOLDER = "comparison_reports"
+os.makedirs(COMPARE_REPORT_FOLDER, exist_ok=True)
 
 # ---------------- PIPELINE FUNCTION ----------------
 def run_pipeline(company: str):
@@ -177,6 +183,62 @@ def compare_stocks(req: CompareRequest):
     }
 
 
+@app.post("/compare-report")
+def compare_report(req: CompareRequest):
+
+    results = []
+
+    for company in req.companies:
+
+        stock, news, analysis, history, sentiment, recommendation = run_pipeline(
+            company
+        )
+
+        score = (
+            stock["1_month_return"]
+            + stock["3_month_return"]
+            + stock["6_month_return"]
+            + (sentiment["score"] * 10)
+        )
+
+        results.append({
+            "company": company,
+            "price": stock["price"],
+            "1_month_return": stock["1_month_return"],
+            "3_month_return": stock["3_month_return"],
+            "6_month_return": stock["6_month_return"],
+            "sentiment": sentiment["label"],
+            "rating": recommendation["rating"],
+            "score": score
+        })
+
+    best_stock = max(
+        results,
+        key=lambda x: x["score"]
+    )
+
+    reason = (
+        f"{best_stock['company']} has the strongest "
+        "combination of returns and sentiment."
+    )
+
+    file_path = (
+        f"{COMPARE_REPORT_FOLDER}/comparison_report.pdf"
+    )
+
+    create_comparison_pdf(
+        results,
+        best_stock["company"],
+        best_stock["score"],
+        reason,
+        file_path
+    )
+
+    return FileResponse(
+        path=file_path,
+        media_type="application/pdf",
+        filename="comparison_report.pdf"
+    )
 
 if __name__ == "__main__":
     import uvicorn
