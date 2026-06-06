@@ -45,14 +45,15 @@ def get_stock_data(symbol):
     info = ticker.info
 
     stock_data = {
-    "name": info.get("longName"),
-    "price": info.get("currentPrice"),
-    "sector": info.get("sector"),
-    "market_cap": format_market_cap(info.get("marketCap")),
-    "pe_ratio": info.get("trailingPE"),
-    "1_month_return": float(round(one_month_return, 2)),
-    "3_month_return": float(round(three_month_return, 2)),
-    "6_month_return": float(round(six_month_return, 2))
-}
+        "name": info.get("longName"),
+        "price": info.get("currentPrice"),
+        "sector": info.get("sector"),
+        "market_cap": format_market_cap(info.get("marketCap")),
+        "pe_ratio": info.get("trailingPE"),
+        "1_month_return": float(round(one_month_return, 2)),
+        "3_month_return": float(round(three_month_return, 2)),
+        "6_month_return": float(round(six_month_return, 2)),
+        "historical_prices": historical_data
+    }
 
     return stock_data, history
