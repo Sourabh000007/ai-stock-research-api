@@ -48,7 +48,10 @@ def run_pipeline(company: str):
 
         stock, history = get_stock_data(symbol)
         news = get_news(company)
-        analysis = analyze_stock(stock, news)
+        try:
+            analysis = analyze_stock(stock, news)
+        except Exception:
+            analysis = "AI temporarily unavailable due to quota limits."
 
         sentiment = calculate_sentiment(news)
 
