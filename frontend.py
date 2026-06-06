@@ -17,8 +17,10 @@ company = st.text_input(
 
 if st.button("Analyze"):
 
+    API_URL = "https://your-render-url.onrender.com"
+
     response = requests.post(
-        "http://127.0.0.1:8000/analyze",
+        f"{API_URL}/analyze",
         json={
             "company": company
         }
