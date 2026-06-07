@@ -308,3 +308,40 @@ if st.button("Compare Stocks"):
     else:
 
         st.error("Failed to generate comparison PDF")
+
+
+st.divider()
+st.header("💬 AI Stock Chat Assistant")
+
+chat_company = st.text_input("Enter Company for Chat", placeholder="INFY")
+
+user_question = st.text_input("Ask a question", placeholder="Should I buy this stock?")
+
+if st.button("Ask AI"):
+
+    if not chat_company or not user_question:
+        st.warning("Please enter both company and question")
+        st.stop()
+
+    with st.spinner("Thinking... 🤖"):
+
+        chat_response = requests.post(
+            f"{API_URL}/chat",
+            json={
+                "company": chat_company,
+                "question": user_question
+            }
+        )
+
+    if chat_response.status_code != 200:
+        st.error("Chat API failed")
+        st.write(chat_response.text)
+        st.stop()
+
+    data = chat_response.json()
+
+    if data.get("status") == "error":
+        st.error(data["message"])
+        st.stop()
+
+    st.success(data["answer"])

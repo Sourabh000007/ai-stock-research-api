@@ -10,8 +10,12 @@ from symbol_mapper import get_symbol
 from sentiment_analyzer import calculate_sentiment
 from recommendation_engine import generate_recommendation
 from comparison_pdf_generator import create_comparison_pdf
+import google.generativeai as genai
+from pydantic import BaseModel
 
 import os
+
+genai.configure(api_key="YOUR_GEMINI_API_KEY")
 
 # ---------------- APP INIT ----------------
 app = FastAPI(
@@ -27,8 +31,9 @@ class StockRequest(BaseModel):
 class CompareRequest(BaseModel):
     companies: list[str]
 
-class CompareRequest(BaseModel):
-    companies: list[str]
+class ChatRequest(BaseModel):
+    company: str
+    question: str
 
 # ---------------- FOLDERS ----------------
 REPORT_FOLDER = "reports"
@@ -242,6 +247,58 @@ def compare_report(req: CompareRequest):
         media_type="application/pdf",
         filename="comparison_report.pdf"
     )
+
+
+@app.post("/chat")
+def chat(req: ChatRequest):
+
+    try:
+        stock, news, analysis, history, sentiment, recommendation = run_pipeline(req.company)
+
+        # Build compact context (IMPORTANT: keeps token usage LOW)
+        context = f"""
+        Company: {stock['name']}
+        Price: {stock['price']}
+        Sector: {stock['sector']}
+        Market Cap: {stock['market_cap']}
+        1M Return: {stock['1_month_return']}
+        3M Return: {stock['3_month_return']}
+        6M Return: {stock['6_month_return']}
+        Sentiment: {sentiment['label']}
+        News Summary: {news[:3]}
+        Recommendation: {recommendation['rating']} ({recommendation['confidence']}%)
+        """
+
+        model = genai.GenerativeModel("Gemini 3.1 Flash Lite")
+
+        prompt = f"""
+        You are a stock market assistant.
+
+        Use the context below to answer user questions.
+
+        CONTEXT:
+        {context}
+
+        USER QUESTION:
+        {req.question}
+
+        Give:
+        - Simple explanation
+        - Clear reasoning
+        - No financial advice disclaimer
+        """
+
+        response = model.generate_content(prompt)
+
+        return {
+            "answer": response.text
+        }
+
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": str(e)
+        }
 
 if __name__ == "__main__":
     import uvicorn

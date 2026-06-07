@@ -56,7 +56,7 @@ def analyze_stock(stock_data, news_data):
     """
 
     response = client.models.generate_content(
-        model="gemini-2.5-flash",
+        model="Gemini 3.1 Flash Lite",
         contents=prompt
     )
 
