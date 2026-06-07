@@ -1,8 +1,15 @@
 import feedparser
+from urllib.parse import quote_plus
+
 
 def get_news(company):
 
-    url = f"https://news.google.com/rss/search?q={company}+share+market&hl=en-IN&gl=IN&ceid=IN:en"
+    query = quote_plus(f"{company} share market")
+
+    url = (
+        f"https://news.google.com/rss/search?"
+        f"q={query}&hl=en-IN&gl=IN&ceid=IN:en"
+    )
 
     feed = feedparser.parse(url)
 

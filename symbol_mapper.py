@@ -1,16 +1,10 @@
-def get_symbol(company_name: str):
+def get_symbol(user_input: str):
 
-    mapping = {
-        "TCS": "TCS.NS",
-        "INFY": "INFY.NS",
-        "RELIANCE": "RELIANCE.NS",
-        "HDFC": "HDFCBANK.NS",
-        "HDFCBANK": "HDFCBANK.NS",
-        "ITC": "ITC.NS",
-        "WIPRO": "WIPRO.NS",
-        "LT": "LT.NS",
-    }
+    symbol = user_input.upper().strip()
 
-    key = company_name.upper().strip()
+    # User already specified exchange
+    if symbol.endswith(".NS") or symbol.endswith(".BO"):
+        return symbol
 
-    return mapping.get(key, None)
+    # Default to NSE
+    return f"{symbol}.NS"

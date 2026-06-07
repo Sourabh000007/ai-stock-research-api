@@ -13,7 +13,12 @@ st.title("📈 AI Stock Research Dashboard")
 # ================= INPUT =================
 company = st.text_input(
     "Enter Company Name",
-    placeholder="Example: TCS"
+    placeholder="Examples: INFY, TCS, RELIANCE or INFY.BO"
+)
+
+st.caption(
+    "Enter NSE symbols like INFY or TCS. "
+    "For BSE stocks use the full symbol ending with .BO"
 )
 
 # ================= BUTTON =================
@@ -29,12 +34,14 @@ if analyze_clicked and company.strip():
 
     API_URL = "https://stock-ai-api-d3va.onrender.com"
 
-    response = requests.post(
-        f"{API_URL}/analyze",
-        json={
-            "company": company
-        }
-    )
+    with st.spinner("Analyzing stock..."):
+
+        response = requests.post(
+            f"{API_URL}/analyze",
+            json={
+                "company": company
+            }
+        )
 
     # ================= ERROR HANDLING =================
     if response.status_code != 200:
