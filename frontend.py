@@ -8,6 +8,8 @@ st.set_page_config(
     layout="wide"
 )
 
+API_URL = "https://stock-ai-api-d3va.onrender.com"
+
 st.title("📈 AI Stock Research Dashboard")
 
 # ================= INPUT =================
@@ -32,9 +34,7 @@ if analyze_clicked and not company.strip():
 # ================= MAIN LOGIC =================
 if analyze_clicked and company.strip():
 
-    API_URL = "https://stock-ai-api-d3va.onrender.com"
-
-    with st.spinner("Analyzing stock..."):
+    with st.spinner("📈 Researching stock and generating report..."):
 
         response = requests.post(
             f"{API_URL}/analyze",
@@ -43,23 +43,27 @@ if analyze_clicked and company.strip():
             }
         )
 
-    # ================= ERROR HANDLING =================
-    if response.status_code != 200:
-        st.error("Backend Error")
-        st.write(response.text)
-        st.stop()
+        if response.status_code != 200:
+            st.error("Backend Error")
+            st.write(response.text)
+            st.stop()
 
-    data = response.json()
+        data = response.json()
 
-    if data.get("status") == "error":
-        st.error(data["message"])
-        st.stop()
+        if data.get("status") == "error":
+            st.error(data["message"])
+            st.stop()
 
-    stock = data["stock"]
-    sentiment = data["sentiment"]
-    recommendation = data["recommendation"]
-    news = data["news"]
-    analysis = data["analysis"]
+        stock = data["stock"]
+        sentiment = data["sentiment"]
+        recommendation = data["recommendation"]
+        news = data["news"]
+        analysis = data["analysis"]
+
+        pdf_response = requests.post(
+            f"{API_URL}/report",
+            json={"company": company}
+        )
 
     # ================= STOCK SNAPSHOT =================
     st.subheader("📊 Stock Snapshot")
@@ -117,6 +121,8 @@ if analyze_clicked and company.strip():
         f"({recommendation['confidence']}% confidence)"
     )
 
+    st.balloons()
+
     st.write(f"**Reason:** {recommendation['reason']}")
 
     # ================= NEWS =================
@@ -129,3 +135,176 @@ if analyze_clicked and company.strip():
     st.subheader("🤖 AI Analysis")
 
     st.write(analysis)
+
+    st.subheader("📄 Download Report")
+
+    if pdf_response.status_code == 200:
+
+        st.download_button(
+            label="📄 Download PDF Report",
+            data=pdf_response.content,
+            file_name=f"{company}_report.pdf",
+            mime="application/pdf"
+        )
+
+st.divider()
+
+st.header("📊 Compare Multiple Stocks")
+
+compare_input = st.text_input(
+    "Enter symbols separated by commas",
+    placeholder="Example: INFY,TCS,WIPRO"
+)
+
+if st.button("Compare Stocks"):
+
+    companies = [
+        x.strip().upper()
+        for x in compare_input.split(",")
+        if x.strip()
+    ]
+
+    if len(companies) < 2:
+        st.warning("Enter at least 2 stocks")
+        st.stop()
+
+    with st.spinner("Comparing stocks..."):
+
+        response = requests.post(
+            f"{API_URL}/compare",
+            json={
+                "companies": companies
+            }
+        )
+
+    if response.status_code != 200:
+        st.error("Comparison failed")
+        st.stop()
+
+    data = response.json()
+
+    if data.get("status") == "error":
+        st.error(data["message"])
+        st.stop()
+
+    st.subheader("🏆 Best Pick")
+
+    st.success(
+        f"{data['best_pick']} "
+        f"(Score: {round(data['best_pick_score'], 2)})"
+    )
+
+    st.write(data["reason"])
+
+    winner = next(
+    item
+    for item in data["comparison"]
+        if item["company"] == data["best_pick"]
+    )
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.metric(
+            "Current Price",
+            winner["price"]
+        )
+
+    with col2:
+        st.metric(
+            "Recommendation",
+            winner["rating"]
+        )
+
+    with col3:
+        st.metric(
+            "Confidence",
+            f"{winner['confidence']}%"
+        )
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.metric(
+            "1M Return",
+            f"{winner['1_month_return']}%"
+        )
+
+    with col2:
+        st.metric(
+            "3M Return",
+            f"{winner['3_month_return']}%"
+        )
+
+    with col3:
+        st.metric(
+            "6M Return",
+            f"{winner['6_month_return']}%"
+        )
+
+    st.subheader("📋 Comparison Table")
+
+    df = pd.DataFrame(data["comparison"])
+
+    df = df.rename(columns={
+        "company": "Company",
+        "price": "Price",
+        "1_month_return": "1M Return",
+        "3_month_return": "3M Return",
+        "6_month_return": "6M Return",
+        "sentiment": "Sentiment",
+        "sentiment_score": "Sentiment Score",
+        "rating": "Rating",
+        "confidence": "Confidence",
+        "score": "Score"
+    })
+
+    df = df.sort_values(
+        by="Score",
+        ascending=False
+    )
+
+    styled_df = df.style.map(
+        lambda x:
+            "background-color: #90EE90"
+            if x == "BUY"
+            else (
+                "background-color: #FFD580"
+                if x == "HOLD"
+                else (
+                    "background-color: #FF7F7F"
+                    if x == "SELL"
+                    else ""
+                )
+            ),
+        subset=["Rating"]
+    )
+
+    st.dataframe(
+        styled_df,
+        use_container_width=True
+    )
+
+    st.divider()
+
+    st.subheader("📄 Download Comparison Report")
+
+    compare_pdf_response = requests.post(
+        f"{API_URL}/compare-report",
+        json={
+            "companies": companies
+        }
+    )
+
+    if compare_pdf_response.status_code == 200:
+
+        st.download_button(
+            label="📄 Download Comparison PDF",
+            data=compare_pdf_response.content,
+            file_name="comparison_report.pdf",
+            mime="application/pdf"
+        )
+
+    else:
+
+        st.error("Failed to generate comparison PDF")

@@ -11,6 +11,11 @@ def get_stock_data(symbol):
 
     history = ticker.history(period="6mo")
 
+    if history.empty:
+        raise Exception(
+            "Invalid stock symbol. Please enter a valid NSE/BSE symbol."
+        )
+
     historical_data = []
 
     for date, row in history.iterrows():
