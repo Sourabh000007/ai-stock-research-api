@@ -61,3 +61,29 @@ def analyze_stock(stock_data, news_data):
     )
 
     return response.text
+
+def chat_with_stock(context, question):
+
+    prompt = f"""
+    You are a stock market assistant.
+
+    Use the context below to answer user questions.
+
+    CONTEXT:
+    {context}
+
+    USER QUESTION:
+    {question}
+
+    Give:
+    - Simple explanation
+    - Clear reasoning
+    - No financial advice disclaimer
+    """
+
+    response = client.models.generate_content(
+        model="Gemini 3.1 Flash Lite",
+        contents=prompt
+    )
+
+    return response.text

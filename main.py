@@ -4,18 +4,16 @@ from pydantic import BaseModel
 
 from data_fetcher import get_stock_data
 from news_fetcher import get_news
-from ai_analyzer import analyze_stock
+from ai_analyzer import analyze_stock,chat_with_stock
 from pdf_generator import create_pdf
 from symbol_mapper import get_symbol  
 from sentiment_analyzer import calculate_sentiment
 from recommendation_engine import generate_recommendation
 from comparison_pdf_generator import create_comparison_pdf
-from google import genai
 from pydantic import BaseModel
 
 import os
 
-genai.configure(api_key="YOUR_GEMINI_API_KEY")
 
 # ---------------- APP INIT ----------------
 app = FastAPI(
@@ -255,7 +253,6 @@ def chat(req: ChatRequest):
     try:
         stock, news, analysis, history, sentiment, recommendation = run_pipeline(req.company)
 
-        # Build compact context (IMPORTANT: keeps token usage LOW)
         context = f"""
         Company: {stock['name']}
         Price: {stock['price']}
@@ -269,30 +266,9 @@ def chat(req: ChatRequest):
         Recommendation: {recommendation['rating']} ({recommendation['confidence']}%)
         """
 
-        model = genai.GenerativeModel("Gemini 3.1 Flash Lite")
+        answer = chat_with_stock(context, req.question)
 
-        prompt = f"""
-        You are a stock market assistant.
-
-        Use the context below to answer user questions.
-
-        CONTEXT:
-        {context}
-
-        USER QUESTION:
-        {req.question}
-
-        Give:
-        - Simple explanation
-        - Clear reasoning
-        - No financial advice disclaimer
-        """
-
-        response = model.generate_content(prompt)
-
-        return {
-            "answer": response.text
-        }
+        return {"answer": answer}
 
     except Exception as e:
         return {
