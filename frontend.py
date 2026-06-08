@@ -134,7 +134,52 @@ if analyze_clicked and company.strip():
     # ================= AI ANALYSIS =================
     st.subheader("🤖 AI Analysis")
 
-    st.write(analysis)
+    lines = analysis.split("\n")
+
+    if len(lines) > 0:
+        analysis = "\n".join(lines[1:])
+
+    analysis = analysis.replace(
+        "EXECUTIVE SUMMARY",
+        "## Executive Summary"
+    )
+
+    analysis = analysis.replace(
+        "BULLISH FACTORS",
+        "## Bullish Factors"
+    )
+
+    analysis = analysis.replace(
+        "BEARISH FACTORS",
+        "## Bearish Factors"
+    )
+
+    analysis = analysis.replace(
+        "NEWS SENTIMENT ANALYSIS",
+        "## News Sentiment Analysis"
+    )
+
+    analysis = analysis.replace(
+        "RISK ASSESSMENT",
+        "## Risk Assessment"
+    )
+
+    analysis = analysis.replace(
+        "SHORT-TERM OUTLOOK (1-3 MONTHS)",
+        "## Short-Term Outlook (1-3 Months)"
+    )
+
+    analysis = analysis.replace(
+        "MEDIUM-TERM OUTLOOK (6-12 MONTHS)",
+        "## Medium-Term Outlook (6-12 Months)"
+    )
+
+    analysis = analysis.replace(
+        "OVERALL VIEW",
+        "## Overall View"
+    )
+
+    st.markdown(analysis)
 
     st.subheader("📄 Download Report")
 
@@ -257,6 +302,12 @@ if st.button("Compare Stocks"):
         "rating": "Rating",
         "confidence": "Confidence",
         "score": "Score"
+    })
+
+    df["Rating"] = df["Rating"].replace({
+        "BUY": "🟢 BUY",
+        "HOLD": "🟡 HOLD",
+        "SELL": "🔴 SELL"
     })
 
     df = df.sort_values(
