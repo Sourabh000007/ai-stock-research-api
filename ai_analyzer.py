@@ -56,7 +56,7 @@ def analyze_stock(stock_data, news_data):
     """
 
     response = client.models.generate_content(
-        model="Gemini 3.1 Flash Lite",
+        model="gemini-3.1-flash-lite",
         contents=prompt
     )
 
@@ -82,7 +82,7 @@ def chat_with_stock(context, question):
     """
 
     response = client.models.generate_content(
-        model="Gemini 3.1 Flash Lite",
+        model="gemini-3.1-flash-lite",
         contents=prompt
     )
 

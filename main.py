@@ -10,7 +10,6 @@ from symbol_mapper import get_symbol
 from sentiment_analyzer import calculate_sentiment
 from recommendation_engine import generate_recommendation
 from comparison_pdf_generator import create_comparison_pdf
-from pydantic import BaseModel
 
 import os
 
